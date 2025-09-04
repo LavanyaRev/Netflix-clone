@@ -1,131 +1,96 @@
-import axios from 'axios';
-import { useCallback, useState } from 'react';
-import { NextPageContext } from 'next';
-import { getSession, signIn } from 'next-auth/react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { FcGoogle } from 'react-icons/fc';
-import { FaGithub } from 'react-icons/fa';
+import Image from 'next/image';
+import { signIn } from 'next-auth/react';
 
-import Input from '@/components/input';
-
-export async function getServerSideProps(context: NextPageContext) {
-  const session = await getSession(context);
-
-  if (session) {
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      }
-    }
-  }
-
-  return {
-    props: {}
-  }
+interface AuthForm {
+  email: string;
+  password: string;
 }
 
-const Auth = () => {
+const Auth: React.FC = () => {
+  const [form, setForm] = useState<AuthForm>({ email: '', password: '' });
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-  const [variant, setVariant] = useState('login');
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  const toggleVariant = useCallback(() => {
-    setVariant((currentVariant) => currentVariant === 'login' ? 'register' : 'login');
-  }, []);
-
-  const login = useCallback(async () => {
     try {
-      await signIn('credentials', {
-        email,
-        password,
+      const result = await signIn('credentials', {
         redirect: false,
-        callbackUrl: '/'
+        email: form.email,
+        password: form.password,
       });
 
-      router.push('/profiles');
+      if (result?.error) {
+        alert(result.error);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      alert('Something went wrong.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [email, password, router]);
-
-  const register = useCallback(async () => {
-    try {
-      await axios.post('/api/register', {
-        email,
-        name,
-        password
-      });
-
-      login();
-    } catch (error) {
-        console.log(error);
-    }
-  }, [email, name, password, login]);
+  };
 
   return (
-    <div className="relative h-full w-full bg-[url('/images/hero.jpg')] bg-no-repeat bg-center bg-fixed bg-cover">
-      <div className="bg-black w-full h-full lg:bg-opacity-50">
-        <nav className="px-12 py-5">
-          <img src="/images/logo.png" className="h-12" alt="Logo" />
-        </nav>
-        <div className="flex justify-center">
-          <div className="bg-black bg-opacity-70 px-16 py-16 self-center mt-2 lg:w-2/5 lg:max-w-md rounded-md w-full">
-            <h2 className="text-white text-4xl mb-8 font-semibold">
-              {variant === 'login' ? 'Sign in' : 'Register'}
-            </h2>
-            <div className="flex flex-col gap-4">
-              {variant === 'register' && (
-                <Input
-                  id="name"
-                  type="text"
-                  label="Username"
-                  value={name}
-                  onChange={(e: any) => setName(e.target.value)} 
-                />
-              )}
-              <Input
-                id="email"
-                type="email"
-                label="Email address or phone number"
-                value={email}
-                onChange={(e: any) => setEmail(e.target.value)} 
-              />
-              <Input
-                type="password" 
-                id="password" 
-                label="Password" 
-                value={password}
-                onChange={(e: any) => setPassword(e.target.value)} 
-              />
-            </div>
-            <button onClick={variant === 'login' ? login : register} className="bg-red-600 py-3 text-white rounded-md w-full mt-10 hover:bg-red-700 transition">
-              {variant === 'login' ? 'Login' : 'Sign up'}
-            </button>
-            <div className="flex flex-row items-center gap-4 mt-8 justify-center">
-              <div onClick={() => signIn('google', { callbackUrl: '/profiles' })} className="w-10 h-10 bg-white rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition">
-                <FcGoogle size={32} />
-              </div>
-              <div onClick={() => signIn('github', { callbackUrl: '/profiles' })} className="w-10 h-10 bg-white rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition">
-                <FaGithub size={32} />
-              </div>
-            </div>
-            <p className="text-neutral-500 mt-12">
-              {variant === 'login' ? 'First time using Netflix?' : 'Already have an account?'}
-              <span onClick={toggleVariant} className="text-white ml-1 hover:underline cursor-pointer">
-                {variant === 'login' ? 'Create an account' : 'Login'}
-              </span>
-              .
-            </p>
-          </div>
+    <div className="flex min-h-screen bg-black text-white items-center justify-center px-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo */}
+        <div className="relative w-32 h-12 mx-auto">
+          <Image src="/images/logo.png" alt="Logo" fill style={{ objectFit: 'contain' }} />
         </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-2 bg-zinc-800 rounded-md text-white placeholder-gray-400"
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-2 bg-zinc-800 rounded-md text-white placeholder-gray-400"
+          />
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-2 bg-red-600 hover:bg-red-700 rounded-md font-semibold transition"
+          >
+            {isLoading ? 'Loading...' : 'Sign In'}
+          </button>
+        </form>
+
+        {/* Extra Info */}
+        <p className="text-gray-400 text-sm text-center">
+          Don’t have an account?{' '}
+          <span
+            onClick={() => router.push('/signup')}
+            className="text-white cursor-pointer hover:underline"
+          >
+            Sign up
+          </span>
+        </p>
       </div>
     </div>
   );
-}
+};
 
 export default Auth;

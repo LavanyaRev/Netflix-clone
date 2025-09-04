@@ -1,6 +1,8 @@
 import React from 'react';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
+import Image from 'next/image';
+
 
 import Navbar from '@/components/Navbar';
 import Billboard from '@/components/Billboard';

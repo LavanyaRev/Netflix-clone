@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { BellIcon, MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 import AccountMenu from '@/components/AccountMenu';
 import MobileMenu from '@/components/MobileMenu';
@@ -50,7 +51,7 @@ const Navbar = () => {
           ${showBackground ? 'bg-zinc-900 bg-opacity-90' : ''}
         `}
       >
-        <img src="/images/logo.png" className="h-4 lg:h-7" alt="Netflix Logo" />
+        <Image src="/images/logo.png" className="h-4 lg:h-7" alt="Netflix Logo" />
         <div className="flex-row ml-8 gap-7 hidden lg:flex">
           <NavbarItem label="Home" active />
           <NavbarItem label="Series" />
