@@ -12,11 +12,11 @@ import useMovieList from '@/hooks/useMovieList';
 import useFavorites from '@/hooks/useFavorites';
 import useInfoModalStore from '@/hooks/useInfoModelStore';
 
-interface Movie {
+/*interface Movie {
   id: string;
   title: string;
   thumbnailUrl?: string;
-}
+}*/
 
 export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
